@@ -28,10 +28,16 @@ class ItemListScreen extends StatelessWidget {
     final arguments = ModalRoute.of(context).settings.arguments as Map;
 
 /* -------- Checks if this screen is called from Purchase Requisition ------- */
-    var requisitionId = arguments['requisitionId'] ?? null;
-    var addingFromCatalog = arguments['addingFromCatalog'] ?? false;
-    var purchaseRequisitionItems = arguments['purchaseRequisitionItems'] ?? null;
+    var requisitionId;
+    var addingFromCatalog = false;
+    var purchaseRequisitionItems;
 
+    if (arguments != null) {
+      requisitionId = arguments['requisitionId'] ?? null;
+      addingFromCatalog = arguments['addingFromCatalog'] ?? false;
+      purchaseRequisitionItems = arguments['purchaseRequisitionItems'] ?? null;
+    }
+    
     final hasRequisitionId = requisitionId != null;
 /* -------------------------------------------------------------------------- */
 
@@ -47,24 +53,25 @@ class ItemListScreen extends StatelessWidget {
           ),
         ],
       ),
-      drawer: (addingFromCatalog || hasRequisitionId) ? null : AppDrawer(),
+      drawer: addingFromCatalog ? null : AppDrawer(),
       body: buildContainer(
         loadedItems,
         requisitionId,
         purchaseRequisitionItems,
+        addingFromCatalog,
       ),
-      floatingActionButton: (addingFromCatalog || hasRequisitionId) == false
+      floatingActionButton: addingFromCatalog
           ? FloatingActionButton(
+              onPressed: () => addFromCatalog(context, requisitionId),
+              tooltip: 'Save',
+              child: Icon(Icons.save),
+            )
+          : FloatingActionButton(
               onPressed: () =>
                   Navigator.of(context).pushNamed(EditItemScreen.routeName),
               tooltip: 'Add New',
               child: Icon(Icons.add),
-            )
-          : FloatingActionButton(
-              onPressed: () => addFromCatalog(context, requisitionId),
-              tooltip: 'Save',
-              child: Icon(Icons.save),
-            ), //
+            ),
     );
   }
 
@@ -76,6 +83,7 @@ class ItemListScreen extends StatelessWidget {
     Items loadedItems,
     String requisitionId,
     PurchaseRequisitionItems purchaseRequisitionItems,
+    bool addingFromCatalog,
   ) {
     return Container(
       child: ListView.builder(
@@ -87,7 +95,7 @@ class ItemListScreen extends StatelessWidget {
             child: ItemListTile(
               requisitionId: requisitionId,
               purchaseRequisitionItems: purchaseRequisitionItems,
-              addingFromCatalog: true,
+              addingFromCatalog: addingFromCatalog,
             ),
           );
         },
@@ -108,9 +116,7 @@ class ItemListScreen extends StatelessWidget {
           Provider.of<PurchaseRequisitions>(context).findById(requisitionId);
       await Provider.of<PurchaseRequisitions>(context)
           .updateRequisition(requisitionId, loadedRequisition);
-    } else {
-
-    }
+    } else {}
     Navigator.of(context).pop();
   }
 }
