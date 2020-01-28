@@ -117,7 +117,7 @@ class ItemListTile extends StatelessWidget {
       leading: CircleAvatar(
         backgroundImage: NetworkImage(item.imageUrl),
       ),
-      trailing: (requisitionId != null || addingFromCatalog) 
+      trailing: addingFromCatalog 
           ? IconButton(
               icon: Icon(Icons.add),
               onPressed: () {
