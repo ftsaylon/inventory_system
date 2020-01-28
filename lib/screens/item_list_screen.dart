@@ -1,6 +1,8 @@
 /* -------------------------------- Packages -------------------------------- */
 
 import 'package:flutter/material.dart';
+import 'package:inventory_system/providers/purchase_requisition_item.dart';
+import 'package:inventory_system/providers/purchase_requisition_items.dart';
 import 'package:inventory_system/providers/purchase_requisitions.dart';
 import 'package:provider/provider.dart';
 
@@ -23,13 +25,13 @@ class ItemListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loadedItems = Provider.of<Items>(context);
+    final arguments = ModalRoute.of(context).settings.arguments as Map;
 
 /* -------- Checks if this screen is called from Purchase Requisition ------- */
-    var requisitionId;
-    if (ModalRoute.of(context).settings.arguments != null) {
-      requisitionId =
-          (ModalRoute.of(context).settings.arguments as Map)['requisitionId'];
-    }
+    var requisitionId = arguments['requisitionId'] ?? null;
+    var addingFromCatalog = arguments['addingFromCatalog'] ?? false;
+    var purchaseRequisitionItems = arguments['purchaseRequisitionItems'] ?? null;
+
     final hasRequisitionId = requisitionId != null;
 /* -------------------------------------------------------------------------- */
 
@@ -45,9 +47,13 @@ class ItemListScreen extends StatelessWidget {
           ),
         ],
       ),
-      drawer: hasRequisitionId ? null : AppDrawer(),
-      body: buildContainer(loadedItems, requisitionId),
-      floatingActionButton: hasRequisitionId == false
+      drawer: (addingFromCatalog || hasRequisitionId) ? null : AppDrawer(),
+      body: buildContainer(
+        loadedItems,
+        requisitionId,
+        purchaseRequisitionItems,
+      ),
+      floatingActionButton: (addingFromCatalog || hasRequisitionId) == false
           ? FloatingActionButton(
               onPressed: () =>
                   Navigator.of(context).pushNamed(EditItemScreen.routeName),
@@ -66,7 +72,11 @@ class ItemListScreen extends StatelessWidget {
 /*                                  Builders                                  */
 /* -------------------------------------------------------------------------- */
 
-  Container buildContainer(Items loadedItems, String requisitionId) {
+  Container buildContainer(
+    Items loadedItems,
+    String requisitionId,
+    PurchaseRequisitionItems purchaseRequisitionItems,
+  ) {
     return Container(
       child: ListView.builder(
         // separatorBuilder: (context, index) => Divider(),
@@ -74,7 +84,11 @@ class ItemListScreen extends StatelessWidget {
         itemBuilder: (BuildContext context, int index) {
           return ChangeNotifierProvider.value(
             value: loadedItems.items[index],
-            child: ItemListTile(requisitionId: requisitionId),
+            child: ItemListTile(
+              requisitionId: requisitionId,
+              purchaseRequisitionItems: purchaseRequisitionItems,
+              addingFromCatalog: true,
+            ),
           );
         },
       ),
@@ -86,11 +100,17 @@ class ItemListScreen extends StatelessWidget {
 /* -------------------------------------------------------------------------- */
 
   Future<void> addFromCatalog(
-      BuildContext context, String requisitionId) async {
-    final loadedRequisition =
-        Provider.of<PurchaseRequisitions>(context).findById(requisitionId);
-    await Provider.of<PurchaseRequisitions>(context)
-        .updateRequisition(requisitionId, loadedRequisition);
+    BuildContext context,
+    String requisitionId,
+  ) async {
+    if (requisitionId != null) {
+      final loadedRequisition =
+          Provider.of<PurchaseRequisitions>(context).findById(requisitionId);
+      await Provider.of<PurchaseRequisitions>(context)
+          .updateRequisition(requisitionId, loadedRequisition);
+    } else {
+
+    }
     Navigator.of(context).pop();
   }
 }

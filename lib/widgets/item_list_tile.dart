@@ -27,8 +27,14 @@ enum ActionOptions {
 
 class ItemListTile extends StatelessWidget {
   final requisitionId;
+  final purchaseRequisitionItems;
+  final addingFromCatalog;
 
-  ItemListTile({this.requisitionId});
+  ItemListTile({
+    this.requisitionId,
+    this.purchaseRequisitionItems,
+    this.addingFromCatalog,
+  });
 
   final pesoFormat = new NumberFormat.currency(
     locale: 'en_PH',
@@ -111,7 +117,7 @@ class ItemListTile extends StatelessWidget {
       leading: CircleAvatar(
         backgroundImage: NetworkImage(item.imageUrl),
       ),
-      trailing: requisitionId != null
+      trailing: (requisitionId != null || addingFromCatalog) 
           ? IconButton(
               icon: Icon(Icons.add),
               onPressed: () {
@@ -128,10 +134,18 @@ class ItemListTile extends StatelessWidget {
                   comments: item.comments,
                   isPreApproved: false,
                 );
-                Provider.of<PurchaseRequisitions>(context, listen: false)
-                    .findById(requisitionId)
-                    .purchaseRequisitionItems
-                    .addItem(newPurchaseRequisitionItem);
+
+                if (requisitionId != null) {
+                  Provider.of<PurchaseRequisitions>(context, listen: false)
+                      .findById(requisitionId)
+                      .purchaseRequisitionItems
+                      .addItem(newPurchaseRequisitionItem);
+                } else {
+                  print(requisitionId);
+                  print(addingFromCatalog);
+                  print(purchaseRequisitionItems);
+                  purchaseRequisitionItems.addItem(newPurchaseRequisitionItem);
+                }
               },
             )
           : buildPopupMenuButton(context, item),

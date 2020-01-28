@@ -33,7 +33,7 @@ class _EditPurchaseRequisitionScreenState
     location: '',
     department: '',
     project: '',
-    purchaseRequisitionItems: null,
+    purchaseRequisitionItems: PurchaseRequisitionItems(),
     dateRequired: null,
     description: '',
     requestedBy: '',
@@ -417,7 +417,12 @@ class _EditPurchaseRequisitionScreenState
                       onPressed: () {
                         Navigator.of(context).pushNamed(
                           ItemListScreen.routeName,
-                          arguments: {'requisitionId': _editedRequisition.id},
+                          arguments: {
+                            'requisitionId': _editedRequisition.id,
+                            'addingFromCatalog': true,
+                            'purchaseRequisitionItems':
+                                _editedRequisition.purchaseRequisitionItems,
+                          },
                         );
                       },
                     ),
