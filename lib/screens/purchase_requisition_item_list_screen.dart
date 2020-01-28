@@ -60,7 +60,10 @@ class PurchaseRequisitionItemListScreen extends StatelessWidget {
         onPressed: () {
           Navigator.of(context).pushNamed(
             ItemListScreen.routeName,
-            arguments: {'requisitionId': requisitionId},
+            arguments: {
+              'requisitionId': requisitionId,
+              'addingFromCatalog': true,
+            },
           );
         },
         tooltip: 'Add New',

@@ -1,7 +1,6 @@
 /* -------------------------------- Packages -------------------------------- */
 
 import 'package:flutter/material.dart';
-import 'package:inventory_system/providers/purchase_requisition_item.dart';
 import 'package:inventory_system/providers/purchase_requisition_items.dart';
 import 'package:inventory_system/providers/purchase_requisitions.dart';
 import 'package:provider/provider.dart';
