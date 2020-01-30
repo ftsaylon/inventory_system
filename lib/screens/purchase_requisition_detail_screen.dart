@@ -1,9 +1,13 @@
 /* -------------------------------- Packages -------------------------------- */
 
 import 'dart:io';
+// import 'dart:html' as html;
+
 import 'package:flutter/material.dart';
-import 'package:inventory_system/providers/purchase_requisition.dart';
+import 'package:flutter_plugin_pdf_viewer/flutter_plugin_pdf_viewer.dart'
+    as pdfViewer;
 import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pdfLib;
@@ -12,6 +16,7 @@ import 'package:path_provider/path_provider.dart';
 /* -------------------------------- Providers ------------------------------- */
 
 import '../providers/purchase_requisitions.dart';
+import '../providers/purchase_requisition.dart';
 
 /* --------------------------------- Screens -------------------------------- */
 
@@ -22,13 +27,23 @@ import '../screens/pdf_viewer.dart';
 
 import 'purchase_requisition_item_list_screen.dart';
 
-class PurchaseRequisitionDetailScreen extends StatelessWidget {
+class PurchaseRequisitionDetailScreen extends StatefulWidget {
+  static const routeName = 'purchase-requisition-detail';
+
+  @override
+  _PurchaseRequisitionDetailScreenState createState() =>
+      _PurchaseRequisitionDetailScreenState();
+}
+
+class _PurchaseRequisitionDetailScreenState
+    extends State<PurchaseRequisitionDetailScreen> {
   final pesoFormat = NumberFormat.currency(
     locale: 'en_PH',
     decimalDigits: 2,
     symbol: '₱',
   );
-  static const routeName = 'purchase-requisition-detail';
+
+  pdfLib.Document pdf;
 
   @override
   Widget build(BuildContext context) {
@@ -159,11 +174,40 @@ class PurchaseRequisitionDetailScreen extends StatelessWidget {
                     arguments: loadedRequisition.id);
               },
             ),
-            RaisedButton(
-              child: Text("View PDF"),
-              onPressed: () async {
-                _viewPDF(context, await _getPDFFilePath(loadedRequisition.id));
-              },
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: RaisedButton(
+                    child: Text("Create PDF"),
+                    onPressed: () async {
+                      await _generatePDF(context, loadedRequisition);
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: RaisedButton(
+                    child: Text("View PDF"),
+                    onPressed: () async {
+                      _viewPDF(
+                        context,
+                        await pdfViewer.PDFDocument.fromFile(
+                          File(
+                            await _getPDFFilePath(loadedRequisition.id),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: RaisedButton(
+                    child: Text('Save PDF'),
+                    onPressed: () async {
+                      await _printPDF(loadedRequisition.id);
+                    },
+                  ),
+                )
+              ],
             ),
           ],
         ),
@@ -172,33 +216,45 @@ class PurchaseRequisitionDetailScreen extends StatelessWidget {
   }
 
 /* -------------------------------------------------------------------------- */
-/*                                   Helpers                                  */
+
+  Future<void> _printPDF(String requisitionId) async {
+    await Printing.sharePdf(
+      bytes: pdf.save(),
+      filename: 'PR-$requisitionId-${DateTime.now()}.pdf',
+    );
+  }
+
 /* -------------------------------------------------------------------------- */
 
   List<List<String>> _getData(PurchaseRequisition requisition) {
-    return [...requisition.purchaseRequisitionItems.items.values.map(
-      (item) => [
-        item.name ?? '',
-        item.preferredSupplier ?? '',
-        item.sku ?? '',
-        item.quantity.toString() ?? '',
-        item.unitType ?? '',
-        item.estimatedPrice ?? '',
-        item.size ?? '',
-        item.isPreApproved.toString() ?? '',
-        item.comments ?? '',
-      ],
-    )];
+    return [
+      ...requisition.purchaseRequisitionItems.items.values.map(
+        (item) => [
+          item.name ?? '',
+          item.preferredSupplier ?? '',
+          item.sku ?? '',
+          item.quantity.toString() ?? '',
+          item.unitType ?? '',
+          item.estimatedPrice ?? '',
+          item.size ?? '',
+          item.isPreApproved.toString() ?? '',
+          item.comments ?? '',
+        ],
+      )
+    ];
   }
 
+/* -------------------------------------------------------------------------- */
+
   _generatePDF(BuildContext context, PurchaseRequisition data) async {
-    final pdfLib.Document pdf = pdfLib.Document(deflate: zlib.encode);
+    pdf = pdfLib.Document(deflate: zlib.encode);
 
     pdf.addPage(
       pdfLib.MultiPage(
         pageFormat: PdfPageFormat.a4,
         build: (context) => [
-          pdfLib.Text('Purchase Requisition ID: ${data.id.toString()}'),
+          pdfLib.Text('Purchase Requisition ID: ${data.id.toString()}',
+              style: pdfLib.TextStyle(fontWeight: pdfLib.FontWeight.bold)),
           pdfLib.Text('Location: ${data.location}'),
           pdfLib.Text('Department: ${data.department}'),
           pdfLib.Text('Project: ${data.project}'),
@@ -232,18 +288,16 @@ class PurchaseRequisitionDetailScreen extends StatelessWidget {
         ],
       ),
     );
+    // html.window.open('http://www.pdf995.com/samples/pdf.pdf', "PDF");
 
     final File file = File(await _getPDFFilePath(data.id));
-    print(file.path);
     await file.writeAsBytes(pdf.save());
   }
 
-/* -------------------------------------------------------------------------- */
-
-  _viewPDF(BuildContext context, String path) {
+  _viewPDF(BuildContext context, pdfViewer.PDFDocument document) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => PdfViewerPage(path: path),
+        builder: (_) => PDFViewerPage(document: document),
       ),
     );
   }
@@ -253,9 +307,10 @@ class PurchaseRequisitionDetailScreen extends StatelessWidget {
   Future<String> _getPDFFilePath(String id) async {
     final String dir = (await getApplicationDocumentsDirectory()).path;
     final String path = '$dir/PR-$id.pdf';
-
+    print(path);
     return path;
   }
 
 /* -------------------------------------------------------------------------- */
+
 }

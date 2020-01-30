@@ -141,9 +141,6 @@ class ItemListTile extends StatelessWidget {
                       .purchaseRequisitionItems
                       .addItem(newPurchaseRequisitionItem);
                 } else {
-                  print(requisitionId);
-                  print(addingFromCatalog);
-                  print(purchaseRequisitionItems);
                   purchaseRequisitionItems.addItem(newPurchaseRequisitionItem);
                 }
               },

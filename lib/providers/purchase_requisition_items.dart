@@ -13,7 +13,6 @@ class PurchaseRequisitionItems with ChangeNotifier {
   }
 
   void addItem(PurchaseRequisitionItem item) {
-    print(item.itemId);
     if (_requisitionItems.containsKey(item.itemId)) {
       _requisitionItems.update(
         item.itemId,
@@ -49,7 +48,6 @@ class PurchaseRequisitionItems with ChangeNotifier {
         ),
       );
     }
-    print(_requisitionItems);
     notifyListeners();
   }
 

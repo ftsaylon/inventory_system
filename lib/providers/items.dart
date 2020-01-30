@@ -292,9 +292,7 @@ class Items with ChangeNotifier {
     if (itemIndex >= 0) {
       _items[itemIndex] = newItem;
       notifyListeners();
-    } else {
-      print('...');
-    }
+    } 
   }
 
   Future<void> deleteItem(String id) async {

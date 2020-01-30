@@ -151,9 +151,7 @@ class PurchaseRequisitions with ChangeNotifier {
     if (requisitionIndex >= 0) {
       _purchaseRequisitions[requisitionIndex] = newRequisition;
       notifyListeners();
-    } else {
-      print('...');
-    }
+    } 
   }
 
   Future<void> deleteRequisition(String id) async {

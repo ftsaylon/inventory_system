@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_full_pdf_viewer/full_pdf_viewer_scaffold.dart';
+import 'package:flutter_plugin_pdf_viewer/flutter_plugin_pdf_viewer.dart';
 
-class PdfViewerPage extends StatelessWidget {
-  final String path;
-  const PdfViewerPage({Key key, this.path}) : super(key: key);
+class PDFViewerPage extends StatelessWidget {
+  final PDFDocument document;
+  const PDFViewerPage({Key key, this.document}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return PDFViewerScaffold(
-      path: path,
+    return Scaffold(
+      appBar: AppBar(),
+      body: Center(
+        child: PDFViewer(document: document),
+      ),
     );
   }
 }
